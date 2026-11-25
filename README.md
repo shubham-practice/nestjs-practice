@@ -1,126 +1,290 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS Practice Application
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A hands-on [NestJS](https://nestjs.com/) practice project demonstrating core framework concepts and architectural patterns, including modules, controllers, services, dependency injection, DTO request validation, custom interceptors, middleware, and authorization guards.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Table of Contents
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Features](#features)
+- [Architecture & Core Concepts](#architecture--core-concepts)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation & Setup](#installation--setup)
+- [Running the Application](#running-the-application)
+- [Testing](#testing)
+- [Nest CLI & Setup Commands](#nest-cli--setup-commands)
+- [API Reference](#api-reference)
+  - [Headers](#headers)
+  - [Endpoints](#endpoints)
+  - [Response Format](#response-format)
+- [Observability](#observability)
+- [License](#license)
 
-## Project setup
+---
 
-```bash
-$ npm install
+## Features
+
+- **Modular Architecture**: Clean separation of concerns with encapsulated modules (`UserModule`).
+- **RESTful Endpoints**: Full CRUD operations for user management.
+- **Request Validation & Serialization**: DTOs powered by `class-validator` and `class-transformer` via global `ValidationPipe`.
+- **Response Transformation**: Global interceptor (`TransformInterceptor`) standardizing all API responses into a unified response schema.
+- **Custom Middleware**: Header-based API key validation (`ApiKeyMiddleware`) protecting routes.
+- **Role-Based Guards**: Authorization checks (`RoleGuard`) restricting sensitive operations (e.g., user deletion).
+- **Custom Logging**: Injectable logger service demonstrating NestJS dependency injection.
+- **Observability**: Integrated with [NestJS Observe](https://observe.nestjs.com) for distributed tracing, metrics, and error tracking.
+
+---
+
+## Architecture & Core Concepts
+
+| Concept | File Location | Purpose |
+| :--- | :--- | :--- |
+| **Module** | `src/user/user.module.ts` | Bundles controller, services, and providers into an isolated domain. |
+| **Controller** | `src/user/user.controller.ts` | Handles incoming HTTP requests and routes (`/user`). |
+| **Service** | `src/user/user.service.ts` | Contains business logic and in-memory data store. |
+| **DTO & Validation** | `src/user/dto/create-user.dto.ts` | Defines data shapes and validates input payloads using decorators. |
+| **Interceptor** | `src/utils/transform.interceptor.ts` | Modifies outgoing responses to wrap them in `{ statusCode, message, data }`. |
+| **Middleware** | `src/middleware/api-key.middleware.ts` | Inspects headers before requests reach route handlers (`x-api-key`). |
+| **Guard** | `src/guards/role.guard.ts` | Protects routes based on authorization criteria (`role: admin`). |
+
+---
+
+## Project Structure
+
+```text
+src/
+├── guards/
+│   ├── role.guard.spec.ts
+│   └── role.guard.ts              # Authorization guard checking role headers
+├── middleware/
+│   ├── api-key.middleware.spec.ts
+│   └── api-key.middleware.ts      # Verifies 'x-api-key' header for /user routes
+├── user/
+│   ├── dto/
+│   │   ├── create-user.dto.ts     # Input validation rules (name, email)
+│   │   └── update-user.dto.ts     # Partial update validation
+│   ├── user.controller.spec.ts
+│   ├── user.controller.ts         # User routes & endpoints
+│   ├── user.logger.ts             # Custom injectable logger service
+│   ├── user.module.ts             # User domain module
+│   ├── user.service.spec.ts
+│   └── user.service.ts            # Business logic and user data store
+├── utils/
+│   ├── transform.interceptor.spec.ts
+│   └── transform.interceptor.ts   # Global response wrapper interceptor
+├── app.controller.spec.ts
+├── app.controller.ts
+├── app.module.ts                  # Root application module & middleware configuration
+├── app.service.ts
+└── main.ts                        # Application bootstrap, global pipes & interceptors
 ```
 
-## Compile and run the project
+---
+
+## Prerequisites
+
+- **Node.js**: Version `20.19+` or `22.12+` (LTS recommended)
+- **npm**: Version `10+` (bundled with Node.js)
+- **Nest CLI** (optional, for running generators globally):
+  ```bash
+  npm install -g @nestjs/cli
+  ```
+
+---
+
+## Installation & Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd nestjs-practice
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables:**
+   Create a `.env` file in the project root:
+   ```env
+   PORT=3000
+   OBSERVE_APP_KEY=YOUR_APP_KEY
+   OBSERVE_APP_SECRET=YOUR_APP_SECRET
+   ```
+   *(Note: NestJS Observe keys are optional for local development)*
+
+---
+
+## Running the Application
 
 ```bash
-# development
-$ npm run start
+# Development mode with hot-reload (recommended)
+npm run start:dev
 
-# watch mode
-$ npm run start:dev
+# Standard start
+npm run start
 
-# production mode
-$ npm run start:prod
+# Debug mode
+npm run start:debug
+
+# Production mode
+npm run start:prod
 ```
 
-## Run tests
+The application will start on `http://localhost:3000` (or the port specified in `.env`).
+
+---
+
+## Testing
 
 ```bash
-# unit tests
-$ npm run test
+# Run unit tests
+npm run test
 
-# e2e tests
-$ npm run test:e2e
+# Run tests in watch mode
+npm run test:watch
 
-# test coverage
-$ npm run test:cov
+# Generate test coverage report
+npm run test:cov
+
+# Run end-to-end (e2e) tests
+npm run test:e2e
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Nest CLI & Setup Commands
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Below are the key commands used during the creation and development of this project, along with their usage and explanation:
 
+### 1. Generate User Module
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+nest g module user
+```
+- **Output:** Creates `src/user/user.module.ts` and imports it into `AppModule` (`src/app.module.ts`).
+- **Usage:** Organizes the user feature into a dedicated module that encapsulates its controllers, providers, and exported services.
+
+### 2. Generate User Controller
+```bash
+nest g controller user
+```
+- **Output:** Creates `src/user/user.controller.ts` and `src/user/user.controller.spec.ts`, and registers the controller in `UserModule`.
+- **Usage:** Handles incoming HTTP traffic, routes endpoints (`/user`), and maps incoming parameters, bodies, and queries to service methods.
+
+### 3. Generate User Service
+```bash
+nest g service user
+```
+- **Output:** Creates `src/user/user.service.ts` and `src/user/user.service.spec.ts`, and adds it as a provider in `UserModule`.
+- **Usage:** Implements the core business logic, in-memory state management, and data retrieval for users.
+
+### 4. Generate Transform Interceptor
+```bash
+nest g interceptor utils/transform --flat
+```
+- **Output:** Creates `src/utils/transform.interceptor.ts` and `src/utils/transform.interceptor.spec.ts` directly inside `src/utils/` (without creating a nested `transform/` directory, thanks to `--flat`).
+- **Usage:** Intercepts outgoing HTTP execution streams using RxJS (`map`) to wrap every successful response in a consistent schema (`{ statusCode, message: 'Success', data }`). Applied globally in `main.ts` via `app.useGlobalInterceptors(new TransformInterceptor())`.
+
+### 5. Install Validation Packages
+```bash
+npm i class-validator class-transformer
+```
+- **Output:** Installs `class-validator` and `class-transformer` into `dependencies`.
+- **Usage:** Enables decorator-based validation for request bodies (DTOs) such as `@IsString()`, `@MinLength()`, and `@IsEmail()`. Combined with `app.useGlobalPipes(new ValidationPipe())` in `main.ts`, automatically validates incoming requests and throws `400 Bad Request` on failure.
+
+### 6. Generate API Key Middleware
+```bash
+nest g middleware middleware/api-key --flat
+```
+- **Output:** Creates `src/middleware/api-key.middleware.ts` and `src/middleware/api-key.middleware.spec.ts` directly in `src/middleware/`.
+- **Usage:** Intercepts incoming requests before reaching route handlers. Implements `NestMiddleware` to check for the `x-api-key` header (`secret-key-123`). Registered in `app.module.ts` for all `/user` routes via `consumer.apply(ApiKeyMiddleware).forRoutes(UserController)`.
+
+### 7. Generate Role Guard
+```bash
+nest g guard guards/role --flat
+```
+- **Output:** Creates `src/guards/role.guard.ts` and `src/guards/role.guard.spec.ts` directly in `src/guards/`.
+- **Usage:** Implements `CanActivate` to restrict route access based on permissions. Checks that the request contains the `role: admin` header before granting access. Bound to sensitive operations like `DELETE /user/:id` using `@UseGuards(RoleGuard)`.
+
+---
+
+## API Reference
+
+### Headers
+
+All `/user` endpoints require the API key header:
+- `x-api-key: secret-key-123`
+
+Protected endpoints (e.g., `DELETE /user/:id`) additionally require:
+- `role: admin`
+
+---
+
+### Endpoints
+
+| Method | Endpoint | Description | Required Headers | Request Body |
+| :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/` | App root welcome message | None | None |
+| `GET` | `/user` | Get all users (filterable via query `?name=...`) | `x-api-key: secret-key-123` | None |
+| `GET` | `/user/:id` | Get user by ID | `x-api-key: secret-key-123` | None |
+| `POST` | `/user` | Create new user | `x-api-key: secret-key-123` | `{ "name": "string", "email": "string" }` |
+| `PUT` | `/user/:id` | Update existing user | `x-api-key: secret-key-123` | `{ "name"?: "string", "email"?: "string" }` |
+| `DELETE` | `/user/:id` | Delete user by ID | `x-api-key: secret-key-123`<br>`role: admin` | None |
+
+---
+
+### Response Format
+
+Thanks to `TransformInterceptor`, all successful responses return in a standardized structure:
+
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "amit",
+      "email": "amit@gmail.com"
+    },
+    {
+      "id": 2,
+      "name": "shubham",
+      "email": "shubham@gmail.com"
+    }
+  ]
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+If validation fails (via `ValidationPipe`), NestJS automatically returns a descriptive `400 Bad Request`:
+
+```json
+{
+  "message": [
+    "name must be longer than or equal to 3 characters",
+    "email must be an email"
+  ],
+  "error": "Bad Request",
+  "statusCode": 400
+}
+```
+
+---
 
 ## Observability
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+This application is instrumented with **[NestJS Observe](https://observe.nestjs.com)** for distributed tracing, auto-correlated logs, and performance metrics.
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-This project is already instrumented. To connect it, run this and approve the code it prints at [observe.nestjs.com/link](https://observe.nestjs.com/link) - signing up for free if you have no account:
-
+To link your application:
 ```bash
-$ npx @nestjs/observe link
+npx @nestjs/observe link
 ```
+Follow the interactive prompt to authenticate. It will automatically write your `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` to `.env`.
 
-It writes the app key and secret into `.env` and makes every `nest start` script (`start`, `start:dev`, `start:debug`) load it. In production, set `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment instead.
-
-Or do it by hand: create an application and an API key at [observe.nestjs.com](https://observe.nestjs.com), and set the pair as `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment the app runs in.
-
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is [MIT licensed](LICENSE).
