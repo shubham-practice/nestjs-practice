@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
+import { RoleGuard } from '../guards/role.guard';
 
 @Controller('user')
+// @UseGuards(RoleGuard)
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
@@ -57,6 +59,7 @@ export class UserController {
 
     // DELETE
     @Delete(':id')
+    @UseGuards(RoleGuard)
     deleteUser(@Param('id') id: number) {
         return this.userService.deleteUser(id)
     }
